@@ -1,6 +1,8 @@
 #![no_std]
 #![no_main]
 
+use generic_array::typenum::U1;
+use keyberon::impl_heterogenous_array;
 use panic_halt as _;
 
 use bsp::hal;
@@ -16,9 +18,9 @@ use hal::gpio::{Input, Output, PullUp, PushPull};
 use hal::prelude::*;
 use hal::timer;
 use hal::timer::TimerCounter;
-use pac::CorePeripherals;
 use pac::Peripherals;
 use rtic::app;
+use usb_device::class_prelude::UsbBusAllocator;
 
 use keyberon::action::Action::{self};
 use keyberon::action::{k, m};
@@ -32,28 +34,40 @@ type UsbClass = keyberon::Class<'static, UsbBus, ()>;
 type UsbDevice = usb_device::device::UsbDevice<'static, UsbBus>;
 
 pub struct Cols(pub hal::gpio::v2::pin::Pin<PA02, Input<PullUp>>);
+impl_heterogenous_array! {
+    Cols,
+    dyn InputPin<Error = Infallible>,
+    U1,
+    [0]
+}
 
 pub struct Rows(pub hal::gpio::v2::pin::Pin<PA03, Output<PushPull>>);
+impl_heterogenous_array! {
+    Rows,
+    dyn OutputPin<Error = Infallible>,
+    U1,
+    [0]
+}
 
 const CUT: Action = m(&[LShift, Delete]);
 
 pub static LAYERS: keyberon::layout::Layers = &[&[&[k(Grave)]]];
+static mut USB_BUS: Option<UsbBusAllocator<UsbBus>> = None;
 
 #[app(device = qt_py_m0::pac)]
 const APP: () = {
     struct Resources {
         usb_dev: UsbDevice,
         usb_class: UsbClass,
-        matrix: Matrix<dyn InputPin<Error = Infallible>, dyn OutputPin<Error = Infallible>, 1, 1>,
-        debouncer: Debouncer<PressedKeys<1, 1>>,
+        matrix: Matrix<Cols, Rows>,
+        debouncer: Debouncer<PressedKeys<U1, U1>>,
         layout: Layout,
         timer: timer::TimerCounter3,
     }
 
     #[init]
-    fn init(mut c: init::Context) -> init::LateResources {
+    fn init(_c: init::Context) -> init::LateResources {
         let mut peripherals = Peripherals::take().unwrap();
-        let mut core = CorePeripherals::take().unwrap();
 
         let mut clocks = GenericClockController::with_internal_32kosc(
             peripherals.GCLK,
@@ -64,15 +78,14 @@ const APP: () = {
 
         let pins = bsp::Pins::new(peripherals.PORT).split();
 
-        let usb_bus = Some(
-            pins.usb
-                .init(peripherals.USB, &mut clocks, &mut peripherals.PM),
-        )
-        .as_ref()
-        .unwrap();
+        unsafe {
+            USB_BUS = Some(
+                pins.usb
+                    .init(peripherals.USB, &mut clocks, &mut peripherals.PM),
+            );
+        };
 
-        let usb_class = keyberon::new_class(usb_bus, ());
-        let usb_dev = keyberon::new_device(usb_bus);
+        let usb_bus = unsafe { USB_BUS.as_ref().unwrap() };
 
         let usb_class = keyberon::new_class(usb_bus, ());
         let usb_dev = keyberon::new_device(usb_bus);
@@ -125,6 +138,6 @@ fn send_report(iter: impl Iterator<Item = KeyCode>, usb_class: &mut resources::u
 
 fn usb_poll(usb_dev: &mut UsbDevice, keyboard: &mut UsbClass) {
     if usb_dev.poll(&mut [keyboard]) {
-        keyboard.poll();
+        // keyboard.poll();
     }
 }
