@@ -1,37 +1,50 @@
 #![no_std]
 #![no_main]
 
-use generic_array::typenum::U1;
-use keyberon::impl_heterogenous_array;
 use panic_halt as _;
+
+use core::convert::Infallible;
+use embedded_hal::digital::v2::{InputPin, OutputPin};
 
 use bsp::hal;
 use bsp::pac;
 use qt_py_m0 as bsp;
 
-use bsp::hal::usb::UsbBus;
-use core::convert::Infallible;
-use embedded_hal::digital::v2::{InputPin, OutputPin};
+use cortex_m::asm::wfi;
+use cortex_m::peripheral::NVIC;
+use usb_device::bus::UsbBusAllocator;
+use usb_device::prelude::*;
+
+use bsp::entry;
 use hal::clock::GenericClockController;
-use hal::gpio::v2::{PA02, PA03};
-use hal::gpio::{Input, Output, PullUp, PushPull};
-use hal::prelude::*;
-use hal::timer;
-use hal::timer::TimerCounter;
+use hal::usb::UsbBus;
+use pac::interrupt;
+use pac::CorePeripherals;
 use pac::Peripherals;
-use rtic::app;
-use usb_device::class_prelude::UsbBusAllocator;
 
-use keyberon::action::Action::{self};
-use keyberon::action::{k, m};
-use keyberon::debounce::Debouncer;
-use keyberon::key_code::KeyCode::*;
-use keyberon::key_code::{KbHidReport, KeyCode};
-use keyberon::layout::Layout;
-use keyberon::matrix::{Matrix, PressedKeys};
+use generic_array::typenum::U1;
 
-type UsbClass = keyberon::Class<'static, UsbBus, ()>;
-type UsbDevice = usb_device::device::UsbDevice<'static, UsbBus>;
+use hal::gpio::v2::Input;
+use hal::gpio::v2::Output;
+use hal::gpio::v2::PullUp;
+use hal::gpio::v2::PushPull;
+use hal::gpio::v2::PA02;
+use hal::gpio::v2::PA03;
+
+use keyberon::action::k;
+// use keyberon::debounce::Debouncer;
+use keyberon::impl_heterogenous_array;
+// use keyberon::matrix;
+// use keyberon::key_code::KbHidReport;
+// use keyberon::key_code::KeyCode;
+use keyberon::key_code::KeyCode::Grave;
+// use keyberon::layout::Layout;
+// use keyberon::matrix::Matrix;
+// use keyberon::matrix::PressedKeys;
+
+// type UsbClass = HidClass<'static, UsbBus, Keyboard<()>>;
+// type UsbClass = keyberon::Class<'static, UsbBus, ()>;
+// type UsbDev = UsbDevice<'static, UsbBus>;
 
 pub struct Cols(pub hal::gpio::v2::pin::Pin<PA02, Input<PullUp>>);
 impl_heterogenous_array! {
@@ -48,96 +61,80 @@ impl_heterogenous_array! {
     U1,
     [0]
 }
-
-const CUT: Action = m(&[LShift, Delete]);
-
 pub static LAYERS: keyberon::layout::Layers = &[&[&[k(Grave)]]];
-static mut USB_BUS: Option<UsbBusAllocator<UsbBus>> = None;
 
-#[app(device = qt_py_m0::pac)]
-const APP: () = {
-    struct Resources {
-        usb_dev: UsbDevice,
-        usb_class: UsbClass,
-        matrix: Matrix<Cols, Rows>,
-        debouncer: Debouncer<PressedKeys<U1, U1>>,
-        layout: Layout,
-        timer: timer::TimerCounter3,
-    }
+#[entry]
+fn main() -> ! {
+    let mut peripherals = Peripherals::take().unwrap();
+    let mut core = CorePeripherals::take().unwrap();
+    let mut clocks = GenericClockController::with_internal_32kosc(
+        peripherals.GCLK,
+        &mut peripherals.PM,
+        &mut peripherals.SYSCTRL,
+        &mut peripherals.NVMCTRL,
+    );
+    let pins = bsp::Pins::new(peripherals.PORT).split();
 
-    #[init]
-    fn init(_c: init::Context) -> init::LateResources {
-        let mut peripherals = Peripherals::take().unwrap();
-
-        let mut clocks = GenericClockController::with_internal_32kosc(
-            peripherals.GCLK,
-            &mut peripherals.PM,
-            &mut peripherals.SYSCTRL,
-            &mut peripherals.NVMCTRL,
+    let bus_allocator = unsafe {
+        USB_ALLOCATOR = Some(
+            pins.usb
+                .init(peripherals.USB, &mut clocks, &mut peripherals.PM),
         );
+        USB_ALLOCATOR.as_ref().unwrap()
+    };
 
-        let pins = bsp::Pins::new(peripherals.PORT).split();
-
-        unsafe {
-            USB_BUS = Some(
-                pins.usb
-                    .init(peripherals.USB, &mut clocks, &mut peripherals.PM),
-            );
-        };
-
-        let usb_bus = unsafe { USB_BUS.as_ref().unwrap() };
-
-        let usb_class = keyberon::new_class(usb_bus, ());
-        let usb_dev = keyberon::new_device(usb_bus);
-
-        let gclk0 = clocks.gclk0();
-        let timer_clock = clocks.tcc2_tc3(&gclk0).unwrap();
-        let mut timer = TimerCounter::tc3_(&timer_clock, peripherals.TC3, &mut peripherals.PM);
-        timer.start(3.mhz());
-
-        let matrix = Matrix::new(
-            Cols(pins.analog.a0.into_pull_up_input()),
-            Rows(pins.analog.a1.into_push_pull_output()),
-        );
-
-        init::LateResources {
-            usb_dev,
-            usb_class,
-            timer,
-            debouncer: Debouncer::new(PressedKeys::default(), PressedKeys::default(), 5),
-            matrix: matrix.unwrap(),
-            layout: Layout::new(LAYERS),
-        }
+    unsafe {
+        USB_CLASS = Some(keyberon::new_class(bus_allocator, ()));
+        USB_DEV = Some(keyberon::new_device(bus_allocator));
+        // LAYOUT = Some(Layout::new(LAYERS));
+        // DEBOUNCER = Some(Debouncer::new(
+        //     PressedKeys::default(),
+        //     PressedKeys::default(),
+        //     5,
+        // ));
+        // MATRIX = Matrix::new(
+        //     Cols(pins.analog.a0.into_pull_up_input()),
+        //     Rows(pins.analog.a1.into_push_pull_output()),
+        // )
+        // .ok();
     }
 
-    #[task(binds = USB, priority = 2, resources = [usb_dev, usb_class])]
-    fn usb_rx(mut c: usb_rx::Context) {
-        usb_poll(&mut c.resources.usb_dev, &mut c.resources.usb_class);
+    unsafe {
+        core.NVIC.set_priority(interrupt::USB, 1);
+        NVIC::unmask(interrupt::USB);
     }
 
-    #[task(binds = TC3, priority = 1, resources = [usb_class, matrix, debouncer, layout, timer])]
-    fn tick(mut c: tick::Context) {
-        for event in c
-            .resources
-            .debouncer
-            .events(c.resources.matrix.get().unwrap())
-        {
-            send_report(c.resources.layout.event(event), &mut c.resources.usb_class);
-        }
-        send_report(c.resources.layout.tick(), &mut c.resources.usb_class);
-    }
-};
-
-fn send_report(iter: impl Iterator<Item = KeyCode>, usb_class: &mut resources::usb_class<'_>) {
-    use rtic::Mutex;
-    let report: KbHidReport = iter.collect();
-    if usb_class.lock(|k| k.device_mut().set_keyboard_report(report.clone())) {
-        while let Ok(0) = usb_class.lock(|k| k.write(report.as_bytes())) {}
+    loop {
+        wfi();
     }
 }
 
-fn usb_poll(usb_dev: &mut UsbDevice, keyboard: &mut UsbClass) {
-    if usb_dev.poll(&mut [keyboard]) {
-        // keyboard.poll();
-    }
+static mut USB_ALLOCATOR: Option<UsbBusAllocator<UsbBus>> = None;
+// static mut USB_BUS: Option<UsbDevice<UsbBus>> = None;
+static mut USB_CLASS: Option<keyberon::Class<'static, UsbBus, ()>> = None;
+static mut USB_DEV: Option<UsbDevice<UsbBus>> = None;
+// static mut LAYOUT: Option<keyberon::layout::Layout> = None;
+// static mut DEBOUNCER: Option<Debouncer<PressedKeys<U1, U1>>> = None;
+// static mut MATRIX: Option<Matrix<Cols, Rows>> = None;
+
+fn poll_usb() {
+    unsafe {
+        USB_DEV.as_mut().map(|usb_dev| {
+            USB_CLASS.as_mut().map(|usb_class| {
+                usb_dev.poll(&mut [usb_class]);
+
+                // let report: KbHidReport = LAYOUT.as_mut().unwrap().tick().collect();
+                // while let Ok(0) = usb_class.write(report.as_bytes()) {}
+                // if let Ok(count) = serial.read(&mut buf) {
+                //     serial.write(&buf[..count]).ok();
+                // };
+            });
+        });
+    };
+    // unsafe { DEBOUNCER.unwrap().events(MATRIX.unwrap().get().unwrap()) };
+}
+
+#[interrupt]
+fn USB() {
+    poll_usb();
 }
