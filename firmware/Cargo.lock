@@ -246,7 +246,7 @@ dependencies = [
 [[package]]
 name = "keyberon"
 version = "0.2.0"
-source = "git+https://github.com/TeXitoi/keyberon#07bb931ed2223b4b0cb35d9d7496d176c76abac1"
+source = "git+https://github.com/onnenon/keyberon#07bb931ed2223b4b0cb35d9d7496d176c76abac1"
 dependencies = [
  "arraydeque",
  "either",
@@ -259,7 +259,7 @@ dependencies = [
 [[package]]
 name = "keyberon-macros"
 version = "0.1.0"
-source = "git+https://github.com/TeXitoi/keyberon#07bb931ed2223b4b0cb35d9d7496d176c76abac1"
+source = "git+https://github.com/onnenon/keyberon#07bb931ed2223b4b0cb35d9d7496d176c76abac1"
 dependencies = [
  "proc-macro-error",
  "proc-macro2",
