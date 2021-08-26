@@ -8,7 +8,6 @@ use bsp::pac;
 use qt_py_m0 as bsp;
 
 use bsp::entry;
-use cortex_m::asm::wfi;
 use cortex_m::peripheral::NVIC;
 use hal::clock::GenericClockController;
 use hal::usb::UsbBus;
@@ -48,10 +47,6 @@ fn main() -> ! {
         USB_ALLOCATOR.as_ref().unwrap()
     };
 
-    unsafe {
-        USB_CLASS = Some(keyberon::new_class(bus_allocator, ()));
-        USB_DEV = Some(keyberon::new_device(bus_allocator));
-    }
     let mut debouncer: Debouncer<PressedKeys<1, 1>> =
         Debouncer::new(PressedKeys::default(), PressedKeys::default(), 5);
 
@@ -64,6 +59,8 @@ fn main() -> ! {
     let mut layout = Layout::new(LAYERS);
 
     unsafe {
+        USB_CLASS = Some(keyberon::new_class(bus_allocator, ()));
+        USB_DEV = Some(keyberon::new_device(bus_allocator));
         core.NVIC.set_priority(interrupt::USB, 1);
         NVIC::unmask(interrupt::USB);
     }
@@ -74,7 +71,6 @@ fn main() -> ! {
         }
         let report: KbHidReport = layout.keycodes().collect();
         unsafe { while let Ok(0) = USB_CLASS.as_mut().unwrap().write(report.as_bytes()) {} }
-        wfi();
     }
 }
 
