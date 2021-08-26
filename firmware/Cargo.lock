@@ -30,6 +30,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "atomic-polyfill"
+version = "0.1.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4a93ba5d6053837dbb76fd0ae26fd4f0c1859a008a783b0ce072b797c07f0f27"
+dependencies = [
+ "cortex-m 0.7.3",
+]
+
+[[package]]
 name = "atsamd-hal"
 version = "0.12.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -216,37 +225,45 @@ dependencies = [
 
 [[package]]
 name = "hash32"
-version = "0.1.1"
+version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d4041af86e63ac4298ce40e5cca669066e75b6f1aa3390fe2561ffa5e1d9f4cc"
+checksum = "b0c35f58762feb77d74ebe43bdbc3210f09be9fe6742234d573bacc26ed92b67"
 dependencies = [
  "byteorder",
 ]
 
 [[package]]
 name = "heapless"
-version = "0.5.6"
+version = "0.7.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "74911a68a1658cfcfb61bc0ccfbd536e3b6e906f8c2f7883ee50157e3e2184f1"
+checksum = "50530280e9a947b192e3a30a9d7bcead527b22da30ff7cbd334233d820aaf82a"
 dependencies = [
- "as-slice",
- "generic-array 0.13.3",
+ "atomic-polyfill",
  "hash32",
  "stable_deref_trait",
 ]
 
 [[package]]
 name = "keyberon"
-version = "0.1.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4cce60bb6c512d5b559f04269cc91893fa63b1bdc9f861a45c63c2ab44e11489"
+version = "0.2.0"
+source = "git+https://github.com/TeXitoi/keyberon#07bb931ed2223b4b0cb35d9d7496d176c76abac1"
 dependencies = [
  "arraydeque",
  "either",
  "embedded-hal",
- "generic-array 0.13.3",
  "heapless",
+ "keyberon-macros",
  "usb-device",
+]
+
+[[package]]
+name = "keyberon-macros"
+version = "0.1.0"
+source = "git+https://github.com/TeXitoi/keyberon#07bb931ed2223b4b0cb35d9d7496d176c76abac1"
+dependencies = [
+ "proc-macro-error",
+ "proc-macro2",
+ "quote",
 ]
 
 [[package]]
@@ -302,7 +319,6 @@ dependencies = [
  "cortex-m 0.6.7",
  "cortex-m-rt",
  "embedded-hal",
- "generic-array 0.14.4",
  "keyberon",
  "panic-halt",
  "qt_py_m0",
@@ -320,6 +336,30 @@ name = "paste"
 version = "1.0.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "acbf547ad0c65e31259204bd90935776d1c693cec2f4ff7abb7a1bbbd40dfe58"
+
+[[package]]
+name = "proc-macro-error"
+version = "1.0.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "da25490ff9892aab3fcf7c36f08cfb902dd3e71ca0f9f9517bea02a73a5ce38c"
+dependencies = [
+ "proc-macro-error-attr",
+ "proc-macro2",
+ "quote",
+ "syn",
+ "version_check",
+]
+
+[[package]]
+name = "proc-macro-error-attr"
+version = "1.0.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a1be40180e52ecc98ad80b184934baf3d0d29f979574e439af5a55274b35f869"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "version_check",
+]
 
 [[package]]
 name = "proc-macro2"
