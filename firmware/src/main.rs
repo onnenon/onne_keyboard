@@ -13,7 +13,9 @@ mod app {
     use bsp::pac;
     use qt_py_m0 as bsp;
 
+    use cortex_m::peripheral::NVIC;
     use hal::usb::UsbBus;
+    use pac::interrupt;
     use pac::CorePeripherals;
     use pac::Peripherals;
     use usb_device::bus::UsbBusAllocator;
@@ -48,6 +50,7 @@ mod app {
     fn init(_ctx: init::Context) -> (Shared, Local, init::Monotonics) {
         static mut USB_ALLOCATOR: Option<UsbBusAllocator<UsbBus>> = None;
         let mut peripherals = Peripherals::take().unwrap();
+        let mut core = CorePeripherals::take().unwrap();
         let mut clocks = GenericClockController::with_internal_32kosc(
             peripherals.GCLK,
             &mut peripherals.PM,
@@ -77,6 +80,11 @@ mod app {
         .unwrap();
 
         let layout = Layout::new(LAYERS);
+
+        unsafe {
+            core.NVIC.set_priority(interrupt::USB, 1);
+            NVIC::unmask(interrupt::USB);
+        }
 
         (
             Shared {
