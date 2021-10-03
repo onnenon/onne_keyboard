@@ -19,7 +19,7 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           command: check
-          args: --manifest-path firmware/Cargo.toml --workspace --examples --features eh1_0_alpha
+          args: --manifest-path firmware/Cargo.tom
       - uses: actions-rs/cargo@v1
         with:
           command: test
