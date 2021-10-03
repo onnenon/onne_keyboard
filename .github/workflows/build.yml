@@ -1,19 +1,26 @@
-on: [push]
-
-name: CI
-
+on: [push, pull_request]
+name: CI Checks
 jobs:
-  build_and_test:
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: firmware
+  check:
+    name: cargo-check
+    runs-on: ubuntu-20.04
+    env:
+      RUSTFLAGS: "-D warnings"
     steps:
       - uses: actions/checkout@v2
+      - run: sudo apt-get update
+      - run: sudo apt-get install gcc-arm-none-eabi
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
+          target: thumbv6m-none-eabi
+          override: true
+          profile: minimal
       - uses: actions-rs/cargo@v1
         with:
-          command: build
-          args: --manifest-path examples/aggregation/Cargo.toml--release --all-features
+          command: check
+          args: --manifest-path firmware/Cargo.toml --workspace --examples --features eh1_0_alpha
+      - uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --manifest-path firmware/Cargo.toml --doc --target x86_64-unknown-linux-gnu
