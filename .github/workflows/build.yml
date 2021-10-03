@@ -6,13 +6,15 @@ jobs:
   build_and_test:
     name: Rust project
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./firmware
     steps:
       - uses: actions/checkout@v2
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
       - uses: actions-rs/cargo@v1
-        working-directory: firmware
         with:
           command: build
           args: --release --all-features
