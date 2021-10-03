@@ -1,23 +1,21 @@
 on: [push, pull_request]
-name: Clippy check
+name: Code formatting check
 jobs:
-  clippy_check:
+  fmt:
+    name: Rustfmt
     runs-on: ubuntu-20.04
     env:
       RUSTFLAGS: "-D warnings"
     steps:
       - uses: actions/checkout@v2
-      - run: sudo apt-get update
-      - run: sudo apt-get install gcc-arm-none-eabi
-      - run: cd firmware
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
           target: thumbv6m-none-eabi
           override: true
           profile: minimal
-          components: clippy
+          components: rustfmt
       - uses: actions-rs/cargo@v1
         with:
-          command: clippy
-          args: --manifest-path firmware/Cargo.toml
+          command: fmt
+          args: --manifest-path firmware/Cargo.toml -- --check
