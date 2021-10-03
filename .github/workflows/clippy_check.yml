@@ -19,4 +19,4 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           command: clippy
-          args: --manifest-path firmware/Cargo.toml
+          args: --manifest-path firmware/Cargo.toml --target thumbv6m-none-eabi
