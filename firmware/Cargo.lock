@@ -41,26 +41,9 @@ dependencies = [
 [[package]]
 name = "atsamd-hal"
 version = "0.12.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "868f22ff864d664efd9a0134cad0905d918f62f3b14d7761ca6d64bdcb1df96b"
-dependencies = [
- "atsamd21e 0.9.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "bitfield",
- "cortex-m 0.6.7",
- "embedded-hal",
- "nb 0.1.3",
- "paste",
- "rand_core",
- "vcell",
- "void",
-]
-
-[[package]]
-name = "atsamd-hal"
-version = "0.12.0"
 source = "git+https://github.com/atsamd-rs/atsamd#bc581ef44cb17358b48d7cb0b0f46107f71c5959"
 dependencies = [
- "atsamd21e 0.9.0 (git+https://github.com/atsamd-rs/atsamd)",
+ "atsamd21e 0.9.0",
  "bitfield",
  "bitflags",
  "cortex-m 0.6.7",
@@ -69,9 +52,9 @@ dependencies = [
  "nb 0.1.3",
  "num-traits",
  "paste",
- "rand_core",
+ "rand_core 0.5.1",
  "replace_with",
- "seq-macro",
+ "seq-macro 0.2.2",
  "typenum",
  "usb-device",
  "vcell",
@@ -79,14 +62,25 @@ dependencies = [
 ]
 
 [[package]]
-name = "atsamd21e"
-version = "0.9.0"
+name = "atsamd-hal"
+version = "0.15.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b721675eee9595c3044e386ae93f384c564eed5822cddc9fcb1c78d77fd0a16c"
+checksum = "73ef309bf38b69dfbf7d5781c9fbce35b876a7f163653a7105848885047827a6"
 dependencies = [
- "bare-metal",
- "cortex-m 0.6.7",
+ "atsamd21e 0.12.0",
+ "bitfield",
+ "bitflags",
+ "cortex-m 0.7.3",
+ "embedded-hal",
+ "modular-bitfield",
+ "nb 1.0.0",
+ "num-traits",
+ "paste",
+ "rand_core 0.6.3",
+ "seq-macro 0.3.0",
+ "typenum",
  "vcell",
+ "void",
 ]
 
 [[package]]
@@ -97,6 +91,16 @@ dependencies = [
  "bare-metal",
  "cortex-m 0.6.7",
  "cortex-m-rt",
+ "vcell",
+]
+
+[[package]]
+name = "atsamd21e"
+version = "0.12.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b502468295c8613d1a92bad7d14b17776fcfe8dc24072d9a205e1a1419b3ff75"
+dependencies = [
+ "cortex-m 0.7.3",
  "vcell",
 ]
 
@@ -315,7 +319,7 @@ dependencies = [
 name = "onne_keyboard"
 version = "0.1.0"
 dependencies = [
- "atsamd-hal 0.12.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "atsamd-hal 0.15.1",
  "cortex-m 0.6.7",
  "cortex-m-rt",
  "embedded-hal",
@@ -375,7 +379,7 @@ name = "qt_py_m0"
 version = "0.9.0"
 source = "git+https://github.com/atsamd-rs/atsamd#bc581ef44cb17358b48d7cb0b0f46107f71c5959"
 dependencies = [
- "atsamd-hal 0.12.0 (git+https://github.com/atsamd-rs/atsamd)",
+ "atsamd-hal 0.12.0",
  "cortex-m 0.6.7",
  "cortex-m-rt",
  "embedded-hal",
@@ -404,6 +408,12 @@ name = "rand_core"
 version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "90bde5296fc891b0cef12a6d03ddccc162ce7b2aff54160af9338f8d40df6d19"
+
+[[package]]
+name = "rand_core"
+version = "0.6.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d34f1408f55294453790c48b2f1ebbb1c5b4b7563eb1f418bcfcfdbb06ebb4e7"
 
 [[package]]
 name = "replace_with"
@@ -440,6 +450,12 @@ name = "seq-macro"
 version = "0.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5a9f47faea3cad316faa914d013d24f471cd90bfca1a0c70f05a3f42c6441e99"
+
+[[package]]
+name = "seq-macro"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "70d9841243dbc9928f5fed7946d2862292eebd823d96e13e556924d3db0120d2"
 
 [[package]]
 name = "stable_deref_trait"
