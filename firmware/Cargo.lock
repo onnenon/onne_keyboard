@@ -320,7 +320,7 @@ name = "onne_keyboard"
 version = "0.1.0"
 dependencies = [
  "atsamd-hal 0.15.1",
- "cortex-m 0.6.7",
+ "cortex-m 0.7.3",
  "cortex-m-rt",
  "embedded-hal",
  "keyberon",
