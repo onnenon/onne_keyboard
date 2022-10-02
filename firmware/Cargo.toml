@@ -12,7 +12,7 @@ embedded-hal = {version="0.2.7", features=["unproven"]}
 qt_py_m0 = { git = "https://github.com/atsamd-rs/atsamd", features=["usb", "unproven"] }
 cortex-m = "0.7"
 cortex-m-rt = { version = "0.6.8", features = ["device"] }
-usb-device = "0.2.8"
+usb-device = "0.2.9"
 atsamd-hal = {version="0.15", features=["samd21e"]}
 
 
