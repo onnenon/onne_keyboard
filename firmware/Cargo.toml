@@ -13,6 +13,6 @@ qt_py_m0 = { git = "https://github.com/atsamd-rs/atsamd", features=["usb", "unpr
 cortex-m = "0.7"
 cortex-m-rt = { version = "0.6.8", features = ["device"] }
 usb-device = "0.2.9"
-atsamd-hal = {version="0.15", features=["samd21e"]}
+atsamd-hal = {version="0.16", features=["samd21e"]}
 
 
